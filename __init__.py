@@ -72,23 +72,65 @@ def openAndLoginSteam(username, password):
     if status == "none":
         openSteamFromStartMenu()
         loginSequence(username, password)
-        return True
+        return status
         
     elif status == "login":
         maximizeSteam()
         loginSequence(username, password)
+        return status
         
     elif status == "window":
-        return True
+        return status
     
     else:
         return False
+
+def clickOnCSGO():
+    clickedOnPlay = False
+    
+    if clickedOnPlay == False and exists(Pattern("steam_library_csgo.png").similar(0.9)):
+        click(Pattern("steam_library_csgo.png").similar(0.9))
+        wait("steam_library_play.png", FOREVER)
+        click(Pattern("steam_library_play.png").similar(0.85))
+        clickedOnPlay = True
+        return True
+        
+    if clickedOnPlay == False and exists(Pattern("steam_library_csgo_hovered.png").similar(0.9)):
+        click(Pattern("steam_library_csgo_hovered.png").similar(0.9))
+        wait("steam_library_play.png", FOREVER)
+        click(Pattern("steam_library_play.png").similar(0.85))
+        clickedOnPlay = True
+        return True
+    
+    if clickedOnPlay == False and exists(Pattern("steam_library_csgo_selected.png").similar(0.9)):
+        click(Pattern("steam_library_csgo_selected.png").similar(0.9))
+        wait("steam_library_play.png", FOREVER)
+        click(Pattern("steam_library_play.png").similar(0.85))
+        clickedOnPlay = True
+        return True
+    
+    return False
+
+# Steam window must be open for this function to execute properly
+def openCSGO():
+    if not exists(Pattern("steam_library_selected.png").similar(0.95)):
+        click(Pattern("steam_library.png").similar(0.85))
+        
+    if exists(Pattern("steam_back.png").similar(0.80)):
+        wait(1)
+        hover("steam_back.png")
+    
+    clickOnCSGO()
+        
+    
 
 def main():
 #     while running:
     initSetup()
     credentials = getCredentials()
-    print(openAndLoginSteam(credentials[0], credentials[1]))
+    steamStatus = openAndLoginSteam(credentials[0], credentials[1])
+    if steamStatus == "window":
+        openCSGO()
 
 
 
