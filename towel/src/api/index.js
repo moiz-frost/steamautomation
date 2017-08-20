@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { EventEmitter } from 'events';
 import Steam from 'steam';
 import CSGO from 'csgo';
+import spoof from 'spoof';
 
 
 const em = new EventEmitter();
@@ -28,6 +29,13 @@ export default ({ config, db }) => {
     });
 
     api.post('/', (req, res) => {
+
+        // comment this when doing local development
+        // it'll spoof your mac address of all the interfaces on your machine
+        // so your internet needs to reconnect before continuing
+        // Else the script will take twice as long to complete for each request
+        spoofMAC();
+
         player_data = {};
 
         let login_details = {
@@ -72,7 +80,11 @@ export default ({ config, db }) => {
         });
 
 
-        em.on('render', () => res.json(player_data));
+        em.on('render', () => {
+            // comment this as well when commenting spoofMAC()
+            unspoofMAC();
+            res.json(player_data);
+        }
     })
 
     return api;
@@ -86,5 +98,28 @@ const next = (data) => {
 
     if (Object.keys(player_data).length == 3) {
         em.emit('render')
+    }
+}
+
+const spoofMAC = () => {
+    var interfaces = spoof.findInterfaces();
+
+    interfaces.forEach(function (it) {
+        let mac = spoof.random()
+
+        setMACAddress(it.device, mac, it.port)
+    }
+
+}
+
+const unspoofMAC = () => {
+    var interfaces = spoof.findInterfaces();
+
+    interfaces.forEach(function (it) {
+        if (!it.address) {
+            console.log((new Error('Could not read hardware MAC address for ' + device))
+        }
+
+        setMACAddress(it.device, it.address, it.port)
     }
 }
