@@ -4,7 +4,18 @@ import { EventEmitter } from 'events';
 import Steam from 'steam';
 import CSGO from 'csgo';
 import spoof from 'spoof';
+import request from 'request'
 
+/*
+Username: justagamer3k
+Password: helloDarkness!
+
+Username: justagamer1k
+Password: hungarianbastard231Q
+
+Username: deltaxd101
+Password: JPKA5%rq4^
+*/
 
 const em = new EventEmitter();
 
@@ -15,6 +26,7 @@ const bot = new Steam.SteamClient(),
 
 
 let player_data = {}
+let login_details = {}
 let tasks = 0;
 
 export default ({ config, db }) => {
@@ -34,14 +46,16 @@ export default ({ config, db }) => {
         // it'll spoof your mac address of all the interfaces on your machine
         // so your internet needs to reconnect before continuing
         // Else the script will take twice as long to complete for each request
-        spoofMAC();
+        // spoofMAC();
 
         player_data = {};
 
-        let login_details = {
+        login_details = {
             "account_name": req.body.username,
             "password": req.body.password
         };
+
+        console.log(login_details)
 
         bot.connect();
         // console.log('connect')
@@ -77,14 +91,51 @@ export default ({ config, db }) => {
                 csgoCLI.playerProfileRequest(csgoCLI.ToAccountID(bot.steamID));
             })
 
-        });
+            em.on('render', () => {
+                // comment this as well when commenting spoofMAC()
+                // unspoofMAC();
+                res.json(player_data);
+            })
+        })
+    });
 
+    api.post('/dota', (req, res) => {
 
-        em.on('render', () => {
-            // comment this as well when commenting spoofMAC()
-            unspoofMAC();
-            res.json(player_data);
-        }
+        // comment this when doing local development
+        // it'll spoof your mac address of all the interfaces on your machine
+        // so your internet needs to reconnect before continuing
+        // Else the script will take twice as long to complete for each request
+        // spoofMAC();
+
+        player_data = {};
+
+        login_details = {
+            "account_name": req.body.username,
+            "password": req.body.password
+        };
+
+        console.log(login_details)
+
+        bot.connect();
+        // console.log('connect')
+        bot.on('connected', () => steamUser.logOn(login_details));
+        bot.on('logOnResponse', (response) => {
+            if (response.eresult == Steam.EResult.OK) {
+                console.log('logged in');
+                next({ "steamID": bot.steamID })
+            } else {
+                res.json({error: "bad username/password"});
+                process.exit();
+            }
+
+            request('https://api.opendota.com/api/players/' + bot.steamID, (error, response, body) => {
+              if (!error && response.statusCode == 200) {
+                console.log(body)
+              }
+            })
+
+        })
+
     })
 
     return api;
@@ -104,22 +155,24 @@ const next = (data) => {
 const spoofMAC = () => {
     var interfaces = spoof.findInterfaces();
 
-    interfaces.forEach(function (it) {
+    interfaces.forEach((it) => {
         let mac = spoof.random()
-
-        setMACAddress(it.device, mac, it.port)
-    }
+        spoof.setMACAddress(it.device, mac, it.port)
+    })
 
 }
 
 const unspoofMAC = () => {
     var interfaces = spoof.findInterfaces();
 
-    interfaces.forEach(function (it) {
+    interfaces.forEach((it) => {
         if (!it.address) {
-            console.log((new Error('Could not read hardware MAC address for ' + device))
+            console.log(new Error('Could not read hardware MAC address for ' + device))
         }
+        spoof.setMACAddress(it.device, it.address, it.port)
+    })
+}
 
-        setMACAddress(it.device, it.address, it.port)
-    }
+const loginSteam = () => {
+
 }
