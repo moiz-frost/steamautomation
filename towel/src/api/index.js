@@ -128,9 +128,14 @@ export default ({ config, db }) => {
                 process.exit();
             }
 
+            // wins: https://api.opendota.com/api/players/{account_id}/wl
+            // total matches: , 
+            // solo MMR, Party MMR: https://api.opendota.com/api/players/{account_id}
+            // hours played: 
+
             request('https://api.opendota.com/api/players/' + bot.steamID, (error, response, body) => {
               if (!error && response.statusCode == 200) {
-                console.log(body)
+                res.json()
               }
             })
 
